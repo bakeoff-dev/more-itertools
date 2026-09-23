@@ -5520,6 +5520,40 @@ class ZipBroadcastTests(TestCase):
                     with self.assertRaises(ValueError):
                         list(mi.zip_broadcast(*objects, strict=True))
 
+    def test_single_use_iterable(self):
+        # Inputs should only be iterated over once (see #2)
+        class SingleUseIterable:
+            def __init__(self, items):
+                self.items = items
+                self.opened = False
+
+            def __iter__(self):
+                if self.opened:
+                    raise RuntimeError('input already opened')
+                self.opened = True
+                return iter(self.items)
+
+        self.assertEqual(
+            list(mi.zip_broadcast(SingleUseIterable([1, 2]), 'label')),
+            [(1, 'label'), (2, 'label')],
+        )
+        # Empty inputs
+        self.assertEqual(
+            list(mi.zip_broadcast(SingleUseIterable([]), 'label')),
+            [],
+        )
+        # Multiple single-use inputs, with strict=True
+        self.assertEqual(
+            list(
+                mi.zip_broadcast(
+                    SingleUseIterable([1, 2]),
+                    SingleUseIterable(['a', 'b']),
+                    strict=True,
+                )
+            ),
+            [(1, 'a'), (2, 'b')],
+        )
+
     def test_scalar_types(self):
         # Default: str and bytes are treated as scalar
         self.assertEqual(
