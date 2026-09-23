@@ -5269,6 +5269,18 @@ class CombinationWithReplacementIndexTests(TestCase):
         expected = 0
         self.assertEqual(actual, expected)
 
+    def test_none_value(self):
+        iterable = [1, None, 2]
+        actual = mi.combination_with_replacement_index((None,), iterable)
+        expected = list(combinations_with_replacement(iterable, 1)).index(
+            (None,)
+        )
+        self.assertEqual(actual, expected)
+
+    def test_none_value_missing(self):
+        with self.assertRaises(ValueError):
+            mi.combination_with_replacement_index((None,), [1, 2])
+
     def test_long(self):
         actual = mi.combination_with_replacement_index(
             (22, 65, 68, 81), range(90)

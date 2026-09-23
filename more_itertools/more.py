@@ -4519,8 +4519,9 @@ def combination_with_replacement_index(element, iterable):
     l = len(element)
     element = enumerate(element)
 
-    k, y = next(element, (None, None))
-    if k is None:
+    exhausted = object()
+    k, y = next(element, (exhausted, exhausted))
+    if k is exhausted:
         return 0
 
     indexes = []
@@ -4528,12 +4529,12 @@ def combination_with_replacement_index(element, iterable):
     for n, x in enumerate(pool):
         while x == y:
             indexes.append(n)
-            tmp, y = next(element, (None, None))
-            if tmp is None:
+            tmp, y = next(element, (exhausted, exhausted))
+            if tmp is exhausted:
                 break
             else:
                 k = tmp
-        if y is None:
+        if y is exhausted:
             break
     else:
         raise ValueError(
