@@ -1182,6 +1182,11 @@ class bucket:
         self._it = iter(iterable)
         self._key = key
         self._cache = defaultdict(deque)
+        # The keys of the items seen so far, in order of first appearance.
+        # Used as an ordered set - a key is only added when some item
+        # actually had it, so the cache going empty doesn't lose it and a
+        # lookup for a missing key doesn't invent one.
+        self._keys = {}
         self._validator = validator or (lambda x: True)
 
     def __contains__(self, value):
@@ -1205,9 +1210,12 @@ class bucket:
         """
         while True:
             # If we've cached some items that match the target value, emit
-            # the first one and evict it from the cache.
-            if self._cache[value]:
-                yield self._cache[value].popleft()
+            # the first one and evict it from the cache. Look the value up
+            # without inserting - indexing the cache would leave an empty
+            # entry behind for values that never turn up.
+            cached = self._cache.get(value)
+            if cached:
+                yield cached.popleft()
             # Otherwise we need to advance the parent iterator to search for
             # a matching item, caching the rest.
             else:
@@ -1218,18 +1226,21 @@ class bucket:
                         return
                     item_value = self._key(item)
                     if item_value == value:
+                        self._keys[item_value] = None
                         yield item
                         break
                     elif self._validator(item_value):
+                        self._keys[item_value] = None
                         self._cache[item_value].append(item)
 
     def __iter__(self):
         for item in self._it:
             item_value = self._key(item)
             if self._validator(item_value):
+                self._keys[item_value] = None
                 self._cache[item_value].append(item)
 
-        return iter(self._cache)
+        return iter(self._keys)
 
     def __getitem__(self, value):
         if not self._validator(value):

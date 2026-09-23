@@ -1109,6 +1109,53 @@ class BucketTests(TestCase):
         self.assertEqual(list(D[20]), [])
         self.assertEqual(list(D[30]), [30, 31, 33])
 
+    def test_list_missing_key_lookup(self):
+        # Selecting an empty bucket shouldn't invent a key
+        iterable = [10, 20, 30, 11, 21, 31, 12, 22, 23, 33]
+        D = mi.bucket(iterable, key=lambda x: 10 * (x // 10))
+        self.assertEqual(list(D[40]), [])
+        self.assertEqual(set(D), {10, 20, 30})
+
+    def test_list_missing_key_in(self):
+        # Testing for membership shouldn't invent a key
+        iterable = [10, 20, 30, 11, 21, 31, 12, 22, 23, 33]
+        D = mi.bucket(iterable, key=lambda x: 10 * (x // 10))
+        self.assertNotIn(40, D)
+        self.assertEqual(set(D), {10, 20, 30})
+
+    def test_list_missing_key_validator(self):
+        # A validator only limits which keys could be invented
+        iterable = [10, 20, 30]
+        key = lambda x: 10 * (x // 10)
+        validator = lambda x: x in {10, 20, 30, 40}
+        D = mi.bucket(iterable, key, validator=validator)
+        self.assertNotIn(40, D)
+        self.assertEqual(list(D[40]), [])
+        self.assertEqual(set(D), {10, 20, 30})
+
+    def test_list_after_partial_consumption(self):
+        # Keys of consumed items are still reported
+        iterable = [10, 20, 30, 11, 21, 31, 12, 22, 23, 33]
+        D = mi.bucket(iterable, key=lambda x: 10 * (x // 10))
+        self.assertEqual(next(D[10]), 10)
+        self.assertEqual(set(D), {10, 20, 30})
+
+        D = mi.bucket(iterable, key=lambda x: 10 * (x // 10))
+        self.assertEqual(list(D[10]), [10, 11, 12])
+        self.assertEqual(set(D), {10, 20, 30})
+
+    def test_in_agrees_with_list(self):
+        # k in s and k in list(s) should agree
+        iterable = ['a1', 'b1', 'a2']
+        D = mi.bucket(iterable, key=lambda x: x[0])
+        for key in ('a', 'b', 'c'):
+            self.assertEqual(key in D, key in list(D))
+
+    def test_list_is_ordered_by_first_appearance(self):
+        iterable = [30, 10, 20, 11, 31]
+        D = mi.bucket(iterable, key=lambda x: 10 * (x // 10))
+        self.assertEqual(list(D), [30, 10, 20])
+
 
 class SpyTests(TestCase):
     """Tests for ``spy()``"""
