@@ -1206,8 +1206,11 @@ class bucket:
         while True:
             # If we've cached some items that match the target value, emit
             # the first one and evict it from the cache.
-            if self._cache[value]:
-                yield self._cache[value].popleft()
+            if value in self._cache and self._cache[value]:
+                item = self._cache[value].popleft()
+                if not self._cache[value]:
+                    del self._cache[value]
+                yield item
             # Otherwise we need to advance the parent iterator to search for
             # a matching item, caching the rest.
             else:
