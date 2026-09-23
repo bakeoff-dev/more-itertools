@@ -4515,12 +4515,13 @@ def combination_with_replacement_index(element, iterable):
     ``ValueError`` will be raised if the given *element* isn't one of the
     combinations with replacement of *iterable*.
     """
+    _sentinel = object()
     element = tuple(element)
     l = len(element)
     element = enumerate(element)
 
-    k, y = next(element, (None, None))
-    if k is None:
+    k, y = next(element, (_sentinel, _sentinel))
+    if k is _sentinel:
         return 0
 
     indexes = []
@@ -4528,12 +4529,12 @@ def combination_with_replacement_index(element, iterable):
     for n, x in enumerate(pool):
         while x == y:
             indexes.append(n)
-            tmp, y = next(element, (None, None))
-            if tmp is None:
+            tmp, y = next(element, (_sentinel, _sentinel))
+            if tmp is _sentinel:
                 break
             else:
                 k = tmp
-        if y is None:
+        if y is _sentinel:
             break
     else:
         raise ValueError(
