@@ -5288,6 +5288,25 @@ class CombinationWithReplacementIndexTests(TestCase):
         with self.assertRaises(ValueError):
             mi.combination_with_replacement_index(tuple('axe'), 'abcde')
 
+    def test_none_in_iterable(self):
+        iterable = [1, None, 2, None]
+        for r in range(len(iterable) + 1):
+            first_index = {}
+            for index, element in enumerate(
+                combinations_with_replacement(iterable, r)
+            ):
+                actual = mi.combination_with_replacement_index(
+                    element, iterable
+                )
+                expected = first_index.setdefault(element, index)
+                self.assertEqual(actual, expected)
+
+    def test_none_not_in_iterable(self):
+        for element in [(None,), (1, None), (None, 2), (1, None, 2)]:
+            with self.subTest(element=element):
+                with self.assertRaises(ValueError):
+                    mi.combination_with_replacement_index(element, [1, 2])
+
 
 class PermutationIndexTests(TestCase):
     def test_r_less_than_n(self):

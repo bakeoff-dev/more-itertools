@@ -4517,10 +4517,10 @@ def combination_with_replacement_index(element, iterable):
     """
     element = tuple(element)
     l = len(element)
-    element = enumerate(element)
+    element = iter(element)
 
-    k, y = next(element, (None, None))
-    if k is None:
+    y = next(element, _marker)
+    if y is _marker:
         return 0
 
     indexes = []
@@ -4528,12 +4528,10 @@ def combination_with_replacement_index(element, iterable):
     for n, x in enumerate(pool):
         while x == y:
             indexes.append(n)
-            tmp, y = next(element, (None, None))
-            if tmp is None:
+            y = next(element, _marker)
+            if y is _marker:
                 break
-            else:
-                k = tmp
-        if y is None:
+        if y is _marker:
             break
     else:
         raise ValueError(
