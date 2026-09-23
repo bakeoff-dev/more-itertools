@@ -4671,16 +4671,6 @@ def zip_broadcast(*objects, scalar_types=(str, bytes), strict=False):
     different lengths.
     """
 
-    def is_scalar(obj):
-        if scalar_types and isinstance(obj, scalar_types):
-            return True
-        try:
-            iter(obj)
-        except TypeError:
-            return True
-        else:
-            return False
-
     size = len(objects)
     if not size:
         return
@@ -4688,11 +4678,16 @@ def zip_broadcast(*objects, scalar_types=(str, bytes), strict=False):
     new_item = [None] * size
     iterables, iterable_positions = [], []
     for i, obj in enumerate(objects):
-        if is_scalar(obj):
+        if scalar_types and isinstance(obj, scalar_types):
             new_item[i] = obj
         else:
-            iterables.append(iter(obj))
-            iterable_positions.append(i)
+            try:
+                iterator = iter(obj)
+            except TypeError:
+                new_item[i] = obj
+            else:
+                iterables.append(iterator)
+                iterable_positions.append(i)
 
     if not iterables:
         yield tuple(objects)
