@@ -1081,6 +1081,23 @@ class BucketTests(TestCase):
         # Checking in-ness shouldn't advance the iterator
         self.assertEqual(next(D[10]), 10)
 
+    def test_missing_keys_are_not_iterated(self):
+        D = mi.bucket(['a1', 'b1'], key=lambda x: x[0])
+
+        self.assertNotIn('c', D)
+        self.assertEqual(list(D['missing']), [])
+        self.assertEqual(sorted(D), ['a', 'b'])
+
+    def test_missing_validated_keys_are_not_iterated(self):
+        D = mi.bucket(
+            ['a1', 'b1'],
+            key=lambda x: x[0],
+            validator=lambda key: key in {'a', 'b', 'c'},
+        )
+
+        self.assertNotIn('c', D)
+        self.assertEqual(sorted(D), ['a', 'b'])
+
     def test_validator(self):
         iterable = count(0)
         key = lambda x: int(str(x)[0])  # First digit of each number

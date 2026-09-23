@@ -1206,8 +1206,9 @@ class bucket:
         while True:
             # If we've cached some items that match the target value, emit
             # the first one and evict it from the cache.
-            if self._cache[value]:
-                yield self._cache[value].popleft()
+            cached_values = self._cache.get(value)
+            if cached_values:
+                yield cached_values.popleft()
             # Otherwise we need to advance the parent iterator to search for
             # a matching item, caching the rest.
             else:
@@ -1218,6 +1219,7 @@ class bucket:
                         return
                     item_value = self._key(item)
                     if item_value == value:
+                        self._cache.setdefault(value, deque())
                         yield item
                         break
                     elif self._validator(item_value):
