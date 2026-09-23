@@ -5288,6 +5288,16 @@ class CombinationWithReplacementIndexTests(TestCase):
         with self.assertRaises(ValueError):
             mi.combination_with_replacement_index(tuple('axe'), 'abcde')
 
+    def test_none_element(self):
+        pool = [1, None, 2]
+        expected = list(combinations_with_replacement(pool, 1)).index((None,))
+        actual = mi.combination_with_replacement_index((None,), pool)
+        self.assertEqual(actual, expected)
+
+    def test_none_not_in_pool(self):
+        with self.assertRaises(ValueError):
+            mi.combination_with_replacement_index((None,), [1, 2])
+
 
 class PermutationIndexTests(TestCase):
     def test_r_less_than_n(self):

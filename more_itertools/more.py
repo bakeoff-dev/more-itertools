@@ -4525,15 +4525,17 @@ def combination_with_replacement_index(element, iterable):
 
     indexes = []
     pool = tuple(iterable)
+    matched = False
     for n, x in enumerate(pool):
         while x == y:
             indexes.append(n)
             tmp, y = next(element, (None, None))
             if tmp is None:
+                matched = True
                 break
             else:
                 k = tmp
-        if y is None:
+        if matched:
             break
     else:
         raise ValueError(
