@@ -1109,6 +1109,31 @@ class BucketTests(TestCase):
         self.assertEqual(list(D[20]), [])
         self.assertEqual(list(D[30]), [30, 31, 33])
 
+    def test_phantom_keys_from_contains(self):
+        s = mi.bucket(['a1', 'b1', 'a2'], key=lambda x: x[0])
+        self.assertNotIn('c', s)
+        self.assertEqual(sorted(s), ['a', 'b'])
+
+    def test_phantom_keys_from_empty_bucket(self):
+        s = mi.bucket(['a1', 'b1'], key=lambda x: x[0])
+        self.assertEqual(list(s['zzz']), [])
+        self.assertEqual(sorted(s), ['a', 'b'])
+
+    def test_phantom_keys_from_validator_miss(self):
+        s = mi.bucket(
+            ['a1', 'b1'],
+            key=lambda x: x[0],
+            validator=lambda k: k in {'a', 'b', 'c'},
+        )
+        self.assertNotIn('c', s)
+        self.assertEqual(sorted(s), ['a', 'b'])
+
+    def test_phantom_keys_accumulate(self):
+        s = mi.bucket(['a1'], key=lambda x: x[0])
+        for k in ('q', 'r', 's'):
+            self.assertNotIn(k, s)
+        self.assertEqual(sorted(s), ['a'])
+
 
 class SpyTests(TestCase):
     """Tests for ``spy()``"""
